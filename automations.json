@@ -1,0 +1,11 @@
+{
+  "_readme": [
+    "未来新增任何自动化任务，往 items 里加一条，面板里就会自动出现。",
+    "字段：id / name / kind / enabled / scheduleText / lastRun / nextRun / costText / note",
+    "lastRun、nextRun 用 ISO 时间字符串（例：2026-10-27T19:00:00Z），不知道就写 null。",
+    "读取顺序：$DSH_HOME/automations.json（优先）→ 插件自带的这份 automations.json。",
+    "内置探测器（刷B站 / 会话提醒 / 任务板）会自动读，不用在这里重复登记。",
+    "想让本插件自动读一个全新的数据源，改 lib/index.js 里的 probes 数组（见 README）。"
+  ],
+  "items": []
+}

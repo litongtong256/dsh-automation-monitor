@@ -1,0 +1,39 @@
+{
+  "name": "dsh-automation-monitor",
+  "version": "0.2.0",
+  "description": "DSH 自动化任务监视器：在会话视图里加一个「自动化」标签页，只读汇总「谁在自动跑、上次跑没跑、下次什么时候跑、花多少 token」。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "automations.json",
+    "README.md"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "monitor",
+    "automation",
+    "observability"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  },
+  "license": "MIT"
+}
