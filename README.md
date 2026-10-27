@@ -74,23 +74,33 @@ DSH 没有「自动化注册表」，每个插件的定时器都在自己进程�
 
 | 插件 | 状态文件 | 分类 | 检测 |
 |---|---|---|---|
-| `dsh-bili-scroll` | `bili-duty/` | 内容抓取 | ✅ 精准（已实测） |
-| DSH 内置提醒 | `storages/schedule.json` | 定时提醒 | ✅ 精准（已实测） |
-| 任务板 | `task-board/ledger-v2.json` | 任务板 | ✅ 精准（已实测） |
-| `dsh-plugin-heartbeat` | `heartbeat.json` | 心跳常驻 | ✅ 通用（已实测） |
-| `@goodandready/dsh-cron` | `data/cron/tasks.json` | cron 调度 | ✅ 通用（已实测） |
-| `@mzzsfy/dsh-cron-board` | `cron-board/jobs.json` | cron 调度 | 🔍 读过源码，未装 |
-| `@hhuangpanda/dsh-automation` | `automation/state.json` | 定时任务 | 🔍 读过源码，未装 |
-| `@alpacachen/dsh-automation` | `automation/state.json` | 定时任务 | 🔍 读过源码，未装 |
-| `@michengai/dsh-automation` | `automation-settings.json` | 定时任务 | 🔍 读过源码，未装 |
-| `dsh-scheduler` | `tasks.json` | 定时任务 | 🔍 读过源码，未装 |
-| `dsh-taskboard` | `dsh-taskboard*.json` | 任务板 | 🔍 读过源码，未装 |
-| `@kanadego/dsh-heartbeat` | `data/*.json` | 心跳常驻 | 🔍 读过源码，未装 |
+| `dsh-bili-scroll` | `bili-duty/` | 内容抓取 | ✅ 精准（装在本机，实测） |
+| DSH 内置提醒 | `storages/schedule.json` | 定时提醒 | ✅ 精准（装在本机，实测） |
+| 任务板 | `task-board/ledger-v2.json` | 任务板 | ✅ 精准（装在本机，实测） |
+| `@mzzsfy/dsh-cron-board` 0.7.1 | `cron-board/jobs.json` | cron 调度 | ✅ **真装验证** |
+| `@michengai/dsh-automation` 1.0.10 | `automation-settings.json` | 定时任务 | ✅ **真装验证** |
+| `dsh-taskboard` 0.9.6 | `dsh-taskboard*.json` | 任务板 | ✅ 真装验证（与本机原有任务板重复，已卸） |
+| `dsh-plugin-heartbeat` 0.4.2 | `heartbeat.json` | 心跳常驻 | ✅ 通用（真装过） |
+| `@goodandready/dsh-cron` 0.3.21 | `data/cron/tasks.json` | cron 调度 | ✅ 通用（真装过） |
+| `@kanadego/dsh-heartbeat` 2.0.1 | `data/*.json` | 心跳常驻 | 认得出文件，但它**没有「下次几点」**（按作息算法决定何时醒），所以不会列出来 |
+| `@hhuangpanda/dsh-automation` | `automation/state.json` | 定时任务 | ⚠️ 装失败（npm 包解出来缺 `package.json`），只有源码结论 |
+| `@alpacachen/dsh-automation` | `automation/state.json` | 定时任务 | ⚠️ 装失败，同上 |
+| `dsh-scheduler` | `tasks.json` | 定时任务 | ⚠️ 装失败，同上 |
+| `dsh-automation-center` | 未确认 | — | ⚠️ 装失败，同上 |
 | `dsh-cron-panel` | **系统 crontab** | — | ❌ 不在 `$DSH_HOME`，扫不到 |
 
-- ✅ = 在本机真的装上跑过、确认探针抓得到
-- 🔍 = 读过它源码里的存储路径，逻辑上能中，但没装来验证
-- ❌ = 结构上就看不到（见下）
+**这些标记是怎么来的（不玩虚的）**：
+
+- ✅ **精准 / 真装验证** = 把这些插件**真的装进 `node_modules`、真的让宿主加载起来**，再按
+  它们源码里的真实字段名造出它们会写的文件，确认本插件认得出、分类对、花费判断对。
+  之所以看到的是造的文件而不是它们自己写的：它们都要你在 UI 里先建任务才落盘，本鱼没建
+  —— 建了可能真跑、真花钱。
+- ⚠️ **装失败** = 这几个包从 npm 解开后是残的（`package.json` 都没有），复制进 `node_modules`
+  也不完整。**好在装的同时就确认了：它们没有被写进 profile 配置**，所以宿主启动时不会去找
+  这些不存在的包，不会因此闪退。
+- ❌ **扫不到** = 结构上看不见，见下一节。
+
+想自己复现：`node test/real-format-check.mjs`（按真实插件格式造 fixture → 验识别 → 自动清理）。
 
 ### 什么情况它看不见
 
