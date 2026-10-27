@@ -36,5 +36,14 @@
       ]
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/litongtong256/dsh-automation-monitor.git"
+  },
+  "homepage": "https://github.com/litongtong256/dsh-automation-monitor#readme",
+  "bugs": {
+    "url": "https://github.com/litongtong256/dsh-automation-monitor/issues"
+  },
+  "author": "litongtong256",
   "license": "MIT"
 }

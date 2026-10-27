@@ -89,6 +89,30 @@ slots.inject('conversation.view', () => slots.register({
 > 前提：DSH 桌面版（要有 `conversation.view` 这个槽位的版本）。
 > Windows / macOS / Linux 都能装，下面的路径**都是示例，照抄时换成你自己的**。
 
+### 最省事：从 npm 装（一条命令）
+
+包已经发在 npm 上了：<https://www.npmjs.com/package/dsh-automation-monitor>
+
+```bash
+# 先进到你的 profile 目录
+cd "$DSH_HOME/profiles/desktop"        # Windows PowerShell: cd "$env:DSH_HOME\profiles\desktop"
+
+# 装
+npm i dsh-automation-monitor           # 用 pnpm 也行：pnpm add dsh-automation-monitor
+```
+
+它会被放进 `node_modules/dsh-automation-monitor`，正是 DSH 要读的位置，**不用建链接**。
+
+然后只剩一步：打开同一个目录下的 `package.json`，在 `dsh.profile.bundles` 数组末尾加一行
+
+```jsonc
+"dsh-automation-monitor"
+```
+
+重启 DSH，会话头部就多出「自动化」标签页。
+
+> 想改源码、或者长期用一份自己的改动，再走下面的手动流程（clone + junction）。
+
 ### 1. 先找到你的 DSH_HOME
 
 DSH 的数据和插件都在它下面：
