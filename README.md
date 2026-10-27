@@ -7,12 +7,14 @@
 
 **把你机器上所有「会自己跑起来、悄悄花 token」的自动化，收进会话里的一个只读标签页。**
 
-装好后每个会话头部多一个「自动化」（跟「上下文」「画廊」「刷过的视频」并排）：
+装好重启后，会话头部的标签行里会多出一个「自动化」—— 就挨着 DSH 自带的「对话」「轨迹」：
 
 ```
-对话 | 轨迹 | 刷过的视频 | 自动化 | 上下文 | 画廊 | 编队
-                            ↑ 本插件
+对话 | 轨迹 | 自动化 | …
+                ↑ 本插件
 ```
+
+（再往右还有哪些标签，取决于你另外装了什么插件，这里不列。）
 
 点开就是一张表 —— **谁在自动跑 · 上次跑没跑 · 下次几点跑 · 大概花多少 token**，
 顶部顺带告诉你今天全局花了多少钱、余额还剩多少。
@@ -320,9 +322,36 @@ New-Item -ItemType Junction `
 node test/self-check.mjs          # 探针能读到什么
 node test/self-check-apply.mjs    # host 只注册一个接口
 node test/self-check-client.mjs   # 标签页注册 + 首屏渲染
+node test/self-check-robust.mjs   # 宿主缺 API / 坏 ctx 也不会抛（防闪退）
 ```
 
 Node 18+ 都行。想用 DSH 自带的那个也行：`$DSH_HOME/dsh-runtimes/dsh-primary-runtime/dependencies/node/bin/node.exe`
+
+## 版本兼容（为什么它不会把你的 DSH 拖崩）
+
+装插件最怕的事，是某个插件的加载代码抛异常，把整个宿主带下去 —— 白屏或者直接闪退。
+这个插件在这方面是**按最坏情况写的**：
+
+| 宿主给的东西 | 它的反应 |
+|---|---|
+| 正常（有 `root.inject` / `root.effect` / `webServer.register`） | 正常注册 `/automation/status.json` |
+| 没有 `root.inject` | 打一行日志，跳过接口注册，其它一切照旧 |
+| `root.effect` 或 `webServer.register` 自己抛 | 捕获，打日志，继续 |
+| `webServer` 不存在或没有 `register` | 捕获，跳过 |
+| 浏览器端没有 `window.__ModuleLoader__` | 安静退出，不动页面 |
+| 浏览器端拿不到 `react` | 返回一个空插件，不注册任何东西 |
+| `slots` 不存在 / 没有 `conversation.view` 槽位 | 静默跳过，不报错 |
+| 任意一个探针读文件时炸了 | 只影响那一条，进 `warnings`，其它照常显示 |
+
+**它不判断版本号**。DSH 的版本号在运行时并不总是拿得到，硬编码「只支持 0.15.x」只会让
+新版一升级就坏。所以走的是**能力探测**：宿主给什么 API 就用什么，缺哪个就少一个功能，
+绝不假设。
+
+想自己验证 `apply()` 在任何坏输入下都不抛：
+
+```bash
+node test/self-check-robust.mjs   # 13 种坏宿主输入，全部必须安静通过
+```
 
 ## 用
 
