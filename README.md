@@ -23,6 +23,10 @@ DSH 的**自动化任务监视器**。只读，不碰任何别的插件/项目�
 
 标签页顶部还显示今日全局花费与余额（读 `.dshw-usage.json`）。
 
+> **装完打开是空的？** 这四条来源都是「有就显示、没有就跳过」。
+> 你要是没装 `dsh-bili-scroll`、也没建过日程提醒，打开就是空的 —— 不是插件坏了，是确实没东西可监视。
+> 可以往 `automations.json` 里手动登记几条（见下面「加一条新自动化」）。
+
 ## 为什么还要一个？（和同类插件的区别）
 
 查过 npm 上 DSH 插件市场（3570 个包）里所有带 `monitor` / `automation` / 监视 字样的：
@@ -69,42 +73,122 @@ slots.inject('conversation.view', () => slots.register({
 }, () => h(AutomationTab)))
 ```
 
-## 安装状态（2026-10-27 已装）
+## 安装
 
-「目录联接（junction）」方式：
+> **Windows 用户**：仓库里带了个 `install.ps1`，跑一次就把下面第 2–4 步全做了：
+>
+> ```powershell
+> powershell -ExecutionPolicy Bypass -File .\install.ps1
+> ```
+>
+> 它会自动找 `DSH_HOME`、建链接、往 `package.json` 里加两行；改之前会备份，改坏了自动还原。
+> 想装到别处就加参数：`-DshHome "D:\dsh-home" -ProfileName desktop`。
+>
+> 手动装的话继续往下看。
 
-```
-E:\dsh-home\profiles\desktop\node_modules\dsh-automation-monitor
-   └─junction→ E:\dsh-workspace\dsh-automation-monitor
-```
+> 前提：DSH 桌面版（要有 `conversation.view` 这个槽位的版本）。
+> Windows / macOS / Linux 都能装，下面的路径**都是示例，照抄时换成你自己的**。
 
-- `<profile>\package.json` 的 `dependencies` 加了 `"dsh-automation-monitor": "0.2.0"`
-- 同文件 `dsh.profile.bundles` 末尾加了 `"dsh-automation-monitor"`
+### 1. 先找到你的 DSH_HOME
 
-⚠️ 因为是 junction，**别删/搬 `E:\dsh-workspace\dsh-automation-monitor`**，否则插件会断链。真要搬就重建：
+DSH 的数据和插件都在它下面：
 
 ```powershell
-Remove-Item 'E:\dsh-home\profiles\desktop\node_modules\dsh-automation-monitor' -Force
-New-Item -ItemType Junction -Path 'E:\dsh-home\profiles\desktop\node_modules\dsh-automation-monitor' -Target '<新路径>'
+# Windows PowerShell
+echo $env:DSH_HOME
 ```
-
-### 卸载
-
-```powershell
-Remove-Item 'E:\dsh-home\profiles\desktop\node_modules\dsh-automation-monitor' -Force
-```
-
-再把 `<profile>\package.json` 里那两行删掉即可，别的什么都不用动。
-
-## 自检（不需要起 DSH）
 
 ```bash
-node E:\dsh-workspace\dsh-automation-monitor\test\self-check.mjs          # 探针能读到什么
-node E:\dsh-workspace\dsh-automation-monitor\test\self-check-apply.mjs    # host 只注册一个接口
-node E:\dsh-workspace\dsh-automation-monitor\test\self-check-client.mjs   # 标签页注册 + 首屏渲染
+# macOS / Linux
+echo $DSH_HOME
 ```
 
-（`node` 用 DSH 自带的：`E:\dsh-home\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe`）
+没设过的话默认是 `~/.dsh`（比如 `C:\Users\你的用户名\.dsh`）。
+你的 profile 目录 = `$DSH_HOME/profiles/<profile 名>`，一般叫 `desktop`。
+
+下面统一写作 `$DSH_HOME` 和 `desktop`。
+
+### 2. 把代码放下
+
+```bash
+git clone https://github.com/litongtong256/dsh-automation-monitor.git /path/to/dsh-automation-monitor
+```
+
+放哪都行（`D:\plugins\...`、`/opt/...`、`~/code/...`），记住路径就行。
+
+### 3. 挂进 profile 的 `node_modules`
+
+Windows（junction，不需要管理员权限）：
+
+```powershell
+New-Item -ItemType Junction `
+  -Path "$env:DSH_HOME\profiles\desktop\node_modules\dsh-automation-monitor" `
+  -Target "D:\plugins\dsh-automation-monitor"
+```
+
+macOS / Linux（符号链接）：
+
+```bash
+ln -s /opt/dsh-automation-monitor \
+      "$DSH_HOME/profiles/desktop/node_modules/dsh-automation-monitor"
+```
+
+### 4. 在 profile 的 `package.json` 里登记两处
+
+打开 `$DSH_HOME/profiles/desktop/package.json`：
+
+```jsonc
+{
+  "dependencies": {
+    "dsh-automation-monitor": "0.2.0"     // ← 加这一行
+  },
+  "dsh": {
+    "profile": {
+      "bundles": [
+        // ... 原有的
+        "dsh-automation-monitor"          // ← 数组末尾加这一行
+      ]
+    }
+  }
+}
+```
+
+### 5. 重启 DSH
+
+会话头部多出「自动化」标签页，就是装好了。
+
+## 卸载
+
+```powershell
+Remove-Item "$env:DSH_HOME\profiles\desktop\node_modules\dsh-automation-monitor" -Force
+```
+
+再把 `package.json` 里上面那两行删掉，重启即可。删掉链接**不会**删你 clone 下来的源码。
+
+## 用 junction / symlink 装的原因
+
+改代码不用重新安装，开发目录就是运行目录。代价是**别乱删别乱搬源码目录**，搬了要重建链接：
+
+```powershell
+Remove-Item "$env:DSH_HOME\profiles\desktop\node_modules\dsh-automation-monitor" -Force
+New-Item -ItemType Junction `
+  -Path "$env:DSH_HOME\profiles\desktop\node_modules\dsh-automation-monitor" `
+  -Target "<新路径>"
+```
+
+> 也正因如此：**别在 profile 里跑 `npm install`**，它会把链接覆盖成真目录，你的改动就跟运行中的那份脱钩了。
+
+## 自检（不用起 DSH）
+
+进插件目录跑：
+
+```bash
+node test/self-check.mjs          # 探针能读到什么
+node test/self-check-apply.mjs    # host 只注册一个接口
+node test/self-check-client.mjs   # 标签页注册 + 首屏渲染
+```
+
+Node 18+ 都行。想用 DSH 自带的那个也行：`$DSH_HOME/dsh-runtimes/dsh-primary-runtime/dependencies/node/bin/node.exe`
 
 ## 用
 
