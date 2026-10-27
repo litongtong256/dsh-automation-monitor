@@ -1,16 +1,33 @@
 # dsh-automation-monitor
 
-这个是全部dsh制作，当时只是没有搜到类似的插件，我就让他写了一个，然后测试看能不能上传到GitHub上，研究一下居然真的成功了，我根本看不懂代码啊，如果有什么这个项目问题我很抱歉啊，只有这一句话是人类说的，以下内容全是大肥鱼生成的；
+[![npm version](https://img.shields.io/npm/v/dsh-automation-monitor?color=blue)](https://www.npmjs.com/package/dsh-automation-monitor)
+[![license](https://img.shields.io/npm/l/dsh-automation-monitor)](LICENSE)
+[![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)]()
+[![DSH](https://img.shields.io/badge/DeepSeek%20Harness-plugin-6f42c1)](https://github.com/deepseek-ai/deepseek-harness)
 
-DSH 的**自动化任务监视器**。只读，不碰任何别的插件/项目的数据。
+**把你机器上所有「会自己跑起来、悄悄花 token」的自动化，收进会话里的一个只读标签页。**
 
-装好之后，**每个会话的头部会多一个「自动化」标签页**（跟「上下文」「画廊」「刷过的视频」并排），点开就是：
-**谁在自动跑、上次跑没跑、下次什么时候跑、大概花多少 token**。
+装好后每个会话头部多一个「自动化」（跟「上下文」「画廊」「刷过的视频」并排）：
 
 ```
 对话 | 轨迹 | 刷过的视频 | 自动化 | 上下文 | 画廊 | 编队
                             ↑ 本插件
 ```
+
+点开就是一张表 —— **谁在自动跑 · 上次跑没跑 · 下次几点跑 · 大概花多少 token**，
+顶部顺带告诉你今天全局花了多少钱、余额还剩多少。
+
+> 它**不拥有任何任务**：不启动、不暂停、不修改任何东西，也不碰别的插件的数据。只是那块表。
+
+## 30 秒上手
+
+| 怎么装 | 怎么做 |
+|---|---|
+| **Windows 一键** | `powershell -ExecutionPolicy Bypass -File .\install.ps1` |
+| **从 npm** | `cd "$DSH_HOME/profiles/desktop"` → `npm i dsh-automation-monitor` → 在 `dsh.profile.bundles` 末尾加一行 `"dsh-automation-monitor"` |
+| **手动（改源码用）** | 见下面「手动安装」 |
+
+装完**重启一次 DSH**，会话头部就多出「自动化」。空的也不代表坏了 —— 见下面「装完打开是空的？」。
 
 ## 它监视什么
 
@@ -361,3 +378,13 @@ const probes = [
 - **只读**：所有探针只 `readFileSync`，没有任何写入；标签页也不会启动/暂停/修改任何任务。
 - **失败不拖累宿主**：探针异常只进 `warnings`；标签页 fetch 失败只显示一行提示，不影响会话本身。
 - **不引第三方依赖**：host 侧纯 Node，浏览器侧只用宿主自带的 `react`。
+
+## 关于这个项目
+
+> 这个是全部 dsh 制作，当时只是没有搜到类似的插件，我就让他写了一个，然后测试看能不能上传到 GitHub 上，研究一下居然真的成功了，我根本看不懂代码啊，如果有什么这个项目问题我很抱歉啊，只有这一句话是人类说的，以下内容全是大肥鱼生成的；
+>
+> —— 项目主人
+
+代码、文档、issue 回复基本都是大肥鱼（AI）写的。人只负责说「我要什么」和「这个不对」。
+所以：**用出问题欢迎提 issue**，但别指望有人能手写修复 —— 先看看「边界」那节，很多是设计如此。
+
