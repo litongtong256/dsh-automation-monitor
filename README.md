@@ -14,18 +14,74 @@ DSH 的**自动化任务监视器**。只读，不碰任何别的插件/项目�
 
 ## 它监视什么
 
-| 来源 | 读哪里 | 说明 |
+两条路：**精准探针**（认识具体插件，能算出下次时间）和**通用发现**（不认识，靠字段名规律扫出来）。
+
+| 探针 | 读哪里 | 说明 |
 |---|---|---|
 | 刷B站 `dsh-bili-scroll` | `$DSH_HOME/bili-duty/{state,config}.json`、`duty.log`、`out/<日期>.md` | 下次窗口时间按插件真实调度逻辑算（含「夜间跨零点会跑两轮」这个坑） |
 | 会话提醒 | `$DSH_HOME/storages/schedule.json` | **能列出别的会话里的提醒**（DSH 自带的 `schedule_list` 只看当前会话） |
 | 任务板 cron | `$DSH_HOME/task-board/ledger-v2.json` | 有定时调度的卡片才会出现 |
+| 通用发现 | `$DSH_HOME` 下所有 JSON（≤3 层） | 见下面「支持的插件」 |
 | 自定义 | `automations.json` | 未来任何自动化，加一条就出现在标签页里 |
 
 标签页顶部还显示今日全局花费与余额（读 `.dshw-usage.json`）。
 
-> **装完打开是空的？** 这四条来源都是「有就显示、没有就跳过」。
+> **装完打开是空的？** 这几条来源都是「有就显示、没有就跳过」。
 > 你要是没装 `dsh-bili-scroll`、也没建过日程提醒，打开就是空的 —— 不是插件坏了，是确实没东西可监视。
 > 可以往 `automations.json` 里手动登记几条（见下面「加一条新自动化」）。
+
+## 支持的插件（AI 上网逐个查过源码）
+
+DSH 没有「自动化注册表」，每个插件的定时器都在自己进程里跑，互相看不见。
+但几乎所有插件都会把排期落进 `$DSH_HOME` 下的某个 JSON，**而且字段名高度统一** ——
+实测 11 个主流自动化插件，10 个用 `nextRunAt` / `nextRun` / `runAt` / `fireAt` 这一套命名。
+
+所以本插件用「通用发现」兜底：扫 `$DSH_HOME`（最多 3 层），凡是带这些字段的 JSON 都列出来，
+再按文件路径猜它属于哪一类。
+
+| 插件 | 状态文件 | 分类 | 检测 |
+|---|---|---|---|
+| `dsh-bili-scroll` | `bili-duty/` | 内容抓取 | ✅ 精准（已实测） |
+| DSH 内置提醒 | `storages/schedule.json` | 定时提醒 | ✅ 精准（已实测） |
+| 任务板 | `task-board/ledger-v2.json` | 任务板 | ✅ 精准（已实测） |
+| `dsh-plugin-heartbeat` | `heartbeat.json` | 心跳常驻 | ✅ 通用（已实测） |
+| `@goodandready/dsh-cron` | `data/cron/tasks.json` | cron 调度 | ✅ 通用（已实测） |
+| `@mzzsfy/dsh-cron-board` | `cron-board/jobs.json` | cron 调度 | 🔍 读过源码，未装 |
+| `@hhuangpanda/dsh-automation` | `automation/state.json` | 定时任务 | 🔍 读过源码，未装 |
+| `@alpacachen/dsh-automation` | `automation/state.json` | 定时任务 | 🔍 读过源码，未装 |
+| `@michengai/dsh-automation` | `automation-settings.json` | 定时任务 | 🔍 读过源码，未装 |
+| `dsh-scheduler` | `tasks.json` | 定时任务 | 🔍 读过源码，未装 |
+| `dsh-taskboard` | `dsh-taskboard*.json` | 任务板 | 🔍 读过源码，未装 |
+| `@kanadego/dsh-heartbeat` | `data/*.json` | 心跳常驻 | 🔍 读过源码，未装 |
+| `dsh-cron-panel` | **系统 crontab** | — | ❌ 不在 `$DSH_HOME`，扫不到 |
+
+- ✅ = 在本机真的装上跑过、确认探针抓得到
+- 🔍 = 读过它源码里的存储路径，逻辑上能中，但没装来验证
+- ❌ = 结构上就看不到（见下）
+
+### 什么情况它看不见
+
+- **写进系统 crontab / Windows 计划任务的**（如 `dsh-cron-panel`）：本插件只扫 `$DSH_HOME`，看不到系统级定时器。
+- **纯内存定时器、不落盘的**：没有文件就没有线索，任何外部工具都看不见。
+- **通用发现的误报**：别的插件恰好有个叫 `schedule` 的配置项也会被列出来。所以这类条目标「未知来源」，展开详情能看到字段线索，一眼能判断是不是真任务。
+
+### 分类
+
+标签页顶部有一排筛选小药丸，按 `category` 分：
+
+| 分类 | 含义 |
+|---|---|
+| 内容抓取 | 定时去外面抓东西（刷B站、RSS 之类） |
+| 定时任务 | 通用的定时执行体 |
+| cron 调度 | 用 cron 表达式排的 |
+| 心跳常驻 | 周期性唤醒 agent「自己想想」 |
+| 定时提醒 | 到点提醒人，不起 agent |
+| 任务板 | 任务卡片自带的排期 |
+| 手工登记 | 你写进 `automations.json` 的 |
+| 未知来源 | 通用发现扫出来、不知道该归哪的 |
+
+每条还会标它**会不会花 token**：
+`会起 agent 会话（花 token）` / `只跑脚本（不花 token）` / `未知`。
 
 ## 为什么还要一个？（和同类插件的区别）
 
