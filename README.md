@@ -101,6 +101,29 @@ DSH 没有「自动化注册表」，每个插件的定时器都在自己进程�
 
 本插件的定位就一句：**不拥有任何任务，只当那块表。**
 
+## 和同类「监视面板」插件的关系
+
+DSH 生态里做「看点什么」的插件不少。本鱼把能装的都下载下来读过源码，逐个比对过：
+
+| 插件 | 它看什么 | 数据源 | 位置 | 和本插件的关系 |
+|---|---|---|---|---|
+| `dsh-my-observability` | agent 行为审计流 + 资源看门狗 + Git 提交工具 | `$DSH_HOME/observability/audit.json` | 右栏 tab | **互补**：它记「刚才发生过什么」，本插件记「以后什么时候会再发生」 |
+| `dsh-system-monitor-plugin` | DSH 进程与子进程的 CPU / 内存 | 进程采样 + `system-monitor-plugin/env.json` | 会话 view tab | **不同维度**：它看硬件，本插件看排期 |
+| `dsh-token-monitor` | 模型额度徽标 + 用量统计页签 | provider 接口 + `storages/token-monitor/config.json` | 会话 view tab（`token-monitor-usage`，order 20）+ 设置页 | **重叠一点**：都显示花费，但它按模型拆，本插件只给总数 |
+| `dsh-hud` | 会话实时状态栏（上下文占用 / 令牌 / 轮次 / 计时） | 前端会话数据 | 输入框下方 dock | **不同层**：它看当前这一轮，本插件看全局排期 |
+| `@leetoners/dsh-ui-subagent-monitor` | 正在跑的子代理 | 会话数据 | 侧栏按钮 + 悬浮卡片 | **互补**：它看「现在谁在跑」，本插件看「到点谁会跑」 |
+
+**结论：没有功能重复，也不打架。** 具体验证过：
+
+- **槽位不冲突**：本插件注册 `conversation.view` 用的 id 是 `automation-monitor`（order 25）；
+  `dsh-token-monitor` 用的是 `token-monitor-usage`（order 20）。DSH 的 slot 支持多个注册，会并排显示成两个 tab。
+- **数据不串**：这几个插件写的 `audit.json`、`env.json` 是事件流和系统采样，没有 `nextRunAt` 那套排期字段，
+  通用发现**不会把它们误列成自动化任务**（本鱼拿它们的真实格式造了文件实测，0 误报）。
+- **防误报**：`observability`、`system-monitor-plugin`、`token-monitor` 三个目录已加进扫描跳过列表 ——
+  省 IO，也防它们以后改格式时误报。
+- **花费数据同源**：`dsh-token-monitor`、`dsh-cost-meter`、`dsh-whale-widget` 与本插件都读 DSH 自己的记账，
+  所以「今天花了多少」各家显示一致；区别是它们能按模型/按会话拆，本插件只给总数（它要回答的是「谁在花」）。
+
 ## 结构（两个半端，各一个文件）
 
 | 文件 | 半边 | 干什么 |
