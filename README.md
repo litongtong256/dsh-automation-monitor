@@ -38,6 +38,7 @@
 | 探针 | 读哪里 | 说明 |
 |---|---|---|
 | 刷B站 `dsh-bili-scroll` | `$DSH_HOME/bili-duty/{state,config}.json`、`duty.log`、`out/<日期>.md` | 下次窗口时间按插件真实调度逻辑算（含「夜间跨零点会跑两轮」这个坑） |
+| QQ 伙伴 `dsh-aurabot-qq` | `$DSH_HOME/plugins-data/aurabot/{config,speakup,qzone-social,diary}.json` | 「主动搭话 / 空间社交 / 日记 / 内容抓取」四条都单独列出来，每条带自己的开关与下次时间 |
 | 会话提醒 | `$DSH_HOME/storages/schedule.json` | **能列出别的会话里的提醒**（DSH 自带的 `schedule_list` 只看当前会话） |
 | 任务板 cron | `$DSH_HOME/task-board/ledger-v2.json` | 有定时调度的卡片才会出现 |
 | 通用发现 | `$DSH_HOME` 下所有 JSON（≤3 层） | 见下面「支持的插件」 |
@@ -75,6 +76,7 @@ DSH 没有「自动化注册表」，每个插件的定时器都在自己进程�
 | 插件 | 状态文件 | 分类 | 检测 |
 |---|---|---|---|
 | `dsh-bili-scroll` | `bili-duty/` | 内容抓取 | ✅ 精准（装在本机，实测） |
+| `dsh-aurabot-qq` 1.1.13 | `plugins-data/aurabot/` | QQ 机器人 | ✅ 精准（装在本机，实测）｜主动搭话 / 空间社交 / 日记 / 内容抓取 四条分开列 |
 | DSH 内置提醒 | `storages/schedule.json` | 定时提醒 | ✅ 精准（装在本机，实测） |
 | 任务板 | `task-board/ledger-v2.json` | 任务板 | ✅ 精准（装在本机，实测） |
 | `@mzzsfy/dsh-cron-board` 0.7.1 | `cron-board/jobs.json` | cron 调度 | ✅ **真装验证** |
@@ -115,6 +117,7 @@ DSH 没有「自动化注册表」，每个插件的定时器都在自己进程�
 | 分类 | 含义 |
 |---|---|
 | 内容抓取 | 定时去外面抓东西（刷B站、RSS 之类） |
+| QQ 机器人 | QQ 伙伴（`dsh-aurabot-qq`）的主动搭话 / 空间社交 / 日记 / 内容抓取 |
 | 定时任务 | 通用的定时执行体 |
 | cron 调度 | 用 cron 表达式排的 |
 | 心跳常驻 | 周期性唤醒 agent「自己想想」 |
